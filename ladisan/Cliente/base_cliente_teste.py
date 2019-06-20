@@ -1,7 +1,5 @@
-
-
 from socket import *
-
+import json
 
 def cria_cliente(ip, porta):
 	"""
@@ -22,10 +20,9 @@ while True:
 	
 	#Depois de mandar uma mensagem esperamos uma resposta do servidor 
 	data = sockobj.recv(1024)
-	texto = data.decode("utf-8")
-
-	print(texto.split('\n'))
-	
+	json_da_lista = data.decode("utf-8")
+	lista_de_linhas = json.loads(json_da_lista)
+	linhas = '\n'.join(lista_de_linhas)
 	arquivo = open('file2.txt', 'w')
-	arquivo.write(texto)
+	arquivo.writelines(linhas)
 	arquivo.close()

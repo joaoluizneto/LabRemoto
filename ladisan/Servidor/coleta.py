@@ -5,8 +5,6 @@ serial_port = '/dev/ttyACM0'
 baud_rate = 9600; #In arduino, Serial.begin(baud_rate)
 write_to_file_path = "file1.txt"
 
-arquivo = open(write_to_file_path, "w")
-arquivo.close()
 ser = serial.Serial(serial_port, baud_rate)
 
 while True:
@@ -17,7 +15,7 @@ while True:
 	if line == ',':
 		line = '0'
 
-	if int(line[0])<=1:
+	if float(line[0])<=1:
 	
 		while True:
 		
@@ -33,3 +31,7 @@ while True:
 			arquivo.writelines(conteudo)    # escreva o conteúdo criado anteriormente 	nele.
 
 			arquivo.close()
+
+
+
+

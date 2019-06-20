@@ -2,6 +2,7 @@
 
 from socket import *
 import time
+import json
 
 
 def cria_servidor(ip, porta, num_clientes):
@@ -42,17 +43,25 @@ def pega_dados(arquivo):
 	texto = data.read()
 	lista_de_linhas = texto.split('\n')
 	tamanho = len(lista_de_linhas)
+	for linha in lista_de_linhas:
+		if tamanho >= 2:
+			if linha != '':
+				ultima_linha = str(linha) 
+		else:
+			ultima_linha = "NONE"
+
 	data.close()
-	return tamanho, lista_de_linhas
+	return tamanho, lista_de_linhas, ultima_linha
 
 def delta_tempo():
+	global tempo_inicial
 	return time.time() - tempo_inicial
 
 
 	
 tempo_inicial = time.time()
 cria_servidor('localhost', 50007, 5)
-tamanho1, lista_de_linhas1 = pega_dados('file1.txt')
+tamanho1, lista_de_linhas1, ultima_linha1 = pega_dados('file1.txt')
 
 while True:
 	# Aceita uma conexão quando encontrada e devolve a um novo socket conexão e o endereço do cliente conectado
@@ -78,16 +87,18 @@ while True:
 	while True:
 	
 	
-		if delta_tempo() > 0.5 :
-			tamanho2, lista_de_linhas2 = pega_dados('file1.txt')
+		if delta_tempo() > 1.0 :
+			tamanho2, lista_de_linhas2, ultima_linha2 = pega_dados('file1.txt')
 		
 			if tamanho2 != tamanho1:
 				print("tamanho alterado!")
 				print("novo tamanho = ", tamanho2)
-				print(lista_de_linhas2)
-				conexão.send(texto.encode())
+				print("linha inserida: ", ultima_linha2)
+				json_da_lista = json.dumps(lista_de_linhas2)
+				conexão.send(json_da_lista.encode())
 				tamanho1 = tamanho2
 				lista_de_linhas1 = lista_de_linhas2
+				ultima_linha1 = ultima_linha2
 
 				tempo_inicial = time.time()
 		
