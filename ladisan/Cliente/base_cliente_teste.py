@@ -18,6 +18,7 @@ try:
 		#requisita = ''.encode()
 		#sockobj.send(requisita)
 
+<<<<<<< HEAD
 		#Depois de mandar uma mensagem esperamos uma resposta do servidor
 		data = sockobj.recv(1000000)
 		json_da_lista = data.decode("utf-8")
@@ -28,3 +29,16 @@ try:
 		arquivo.close()
 except:
 	print("Um erro de conexão ocorreu! \n -Servidor desligado \n ou -Endereço IP e porta incorretos ")
+=======
+	#requisita = ''.encode()	
+	#sockobj.send(requisita)
+	
+	#Depois de mandar uma mensagem esperamos uma resposta do servidor 
+	data = sockobj.recv(1024)
+	json_da_lista = data.decode("utf-8")
+	lista_de_linhas = json.loads(json_da_lista)
+	linhas = '\n'.join(lista_de_linhas)
+	arquivo = open('file2.txt', 'w')
+	arquivo.writelines(linhas)
+	arquivo.close()
+>>>>>>> 82ee9fb80a4bc05ffaf19486688e95e998b2deee
