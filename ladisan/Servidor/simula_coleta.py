@@ -29,7 +29,7 @@ arquivo.close()
 print("Simulando coleta...")
 for segundo in range(14*60):
 	time.sleep(1)
-	line = str(segundo) + "," + str(f(segundo/60)) + "\n"
+	line = str(segundo) + "," + "%.3f" % f(segundo/60) + "\n"
 	print(line)
 
 	arquivo = open(write_to_file_path, 'r') # Abra o arquivo (leitura)
