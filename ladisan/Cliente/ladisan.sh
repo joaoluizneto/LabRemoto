@@ -40,22 +40,28 @@ echo -e '\n\n\n\n'
 
 if test $prosseguir -eq 1
 	then
-		echo 'Iniciando cliente socket...'
+		echo 'Iniciando cliente socket e gráfico de vazão...'
 		echo -e '\n\n'
-		erro_python=`python3 base_cliente_teste.py` &
-		erro=`echo $erro_python | grep erro`
-		if test ! $erro
+		python3 base_cliente_teste.py &
+		python3 live_graph.py &
+		numero=`wc -l log.txt`
+
+		until ps $erro -eq 1
+		do
+			if test ! $numero -eq `wc -l log.txt`
 			then
-			echo 'O cliente socket foi iniciado com sucesso!'
-			echo -e '\n\n\n'
-			echo 'Iniciando gráfico de vazão...'
-rro ocorreu'
+			echo `tail -1 log.txt`
+			fi
+
+			if test -e `tail -1 log.txt` | grep erro
+			then
+				erro=1
+				break
+			fi
+		done
+		echo 'saindo do programa...'
 
 fi
-			echo -e '\n\n\n'
-			python3 live_graph.py
-		else
-			echo 'Um problema de conexão foi encontrado!'
-		fi
-fi
+
+
 

@@ -4,6 +4,7 @@ from socket import *
 import time
 import json
 
+caminho_arquivo_login = "login.txt"
 
 def cria_servidor(ip, porta, num_clientes):
 
@@ -37,6 +38,24 @@ def recebe_cliente():
 	conexão, endereço = sockobj.accept()
 	print('Server conectado por ', endereço)
 
+
+def apaga_tudo(arquivo):
+	with open(arquivo, 'w') as arquivo:
+		arquivo.close()
+
+def confere_login(lista):
+	login_name= lista[0]
+	login_passw= lista[1]
+	global caminho_arquivo_login
+	with open(caminho_arquivo_login, "r") as arquivo:
+		login = arquivo.read()
+		login = login.strip('\n')
+		login = login.split(',')
+	if login_name==login[0] and login_passw==login[1]:
+		return True
+	else:
+		return False
+
 def pega_dados(arquivo):
 	arquivo = str(arquivo)
 	data = open(arquivo, 'r')
@@ -58,6 +77,7 @@ def delta_tempo():
 	return time.time() - tempo_inicial
 
 
+apaga_tudo('file1.txt')
 	
 tempo_inicial = time.time()
 cria_servidor('localhost', 50007, 5)
@@ -68,25 +88,26 @@ while True:
 	
 	recebe_cliente() #fica esperando o cliente aparecer
 
-	# Recebe dados enviados pelo cliente
-	#data = conexão.recv(1024)
-	#perfil_de_curva = data.decode("utf-8")
-	
-	#if perfil_de_curva == '1':
-	#	print('perfil 1 selecionado!')
-	#if perfil_de_curva == '2':
-	#	print('perfil 2 selecionado!')
-	#if perfil_de_curva == '3':
-	#	print('perfil 3 selecionado!')
-		
-	# Se não receber mada paramos o loop
-	#if not data: break
-	
-	#if tamanho1 >=3:
+	confere=False
+	while confere == False:
+		data = conexão.recv(1024)
+		json_da_lista = data.decode("utf-8")
+		lista = json.loads(json_da_lista)
+		confere = confere_login(lista)
+
+		if confere==True:
+			print("Login efetuado!")
+			json_confere = json.dumps(confere).encode()
+			conexão.send(json_confere)
+		else:
+			print("Login incorreto!")
+			json_confere = json.dumps(confere).encode()
+			conexão.send(json_confere)
+
 
 	while True:
-	
-	
+
+
 		if delta_tempo() > 1.0 :
 			tamanho2, lista_de_linhas2, ultima_linha2 = pega_dados('file1.txt')
 		
