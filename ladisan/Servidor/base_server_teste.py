@@ -8,7 +8,7 @@ caminho_arquivo_login = "login.txt"
 
 def cria_servidor(ip, porta, num_clientes):
 
-	""" 
+	"""
 	Use porta = 50007
 	Use ip = localhost
 
@@ -78,14 +78,14 @@ def delta_tempo():
 
 
 apaga_tudo('file1.txt')
-	
+
 tempo_inicial = time.time()
 cria_servidor('localhost', 50007, 5)
 tamanho1, lista_de_linhas1, ultima_linha1 = pega_dados('file1.txt')
 
 while True:
 	# Aceita uma conexão quando encontrada e devolve a um novo socket conexão e o endereço do cliente conectado
-	
+
 	recebe_cliente() #fica esperando o cliente aparecer
 
 	confere=False
@@ -110,10 +110,10 @@ while True:
 
 		if delta_tempo() > 1.0 :
 			tamanho2, lista_de_linhas2, ultima_linha2 = pega_dados('file1.txt')
-		
+
 			if tamanho2 != tamanho1:
-				print("tamanho alterado!")
-				print("novo tamanho = ", tamanho2)
+				#print("tamanho alterado!")
+				#print("novo tamanho = ", tamanho2)
 				print("linha inserida: ", ultima_linha2)
 				json_da_lista = json.dumps(lista_de_linhas2)
 				conexão.send(json_da_lista.encode())
@@ -122,7 +122,7 @@ while True:
 				ultima_linha1 = ultima_linha2
 
 				tempo_inicial = time.time()
-		
+
 
 	#Fecha a conexão criada depois de responder o cliente
 	conexão.close()

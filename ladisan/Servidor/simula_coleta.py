@@ -24,11 +24,11 @@ def curva_3(x,a):
 		return 5*exp(-3*(x-a)**2/(2*(2.60)**2))+2
 
 
-print("Simulando coleta...")
+#print("Simulando coleta...")
 for segundo in range(14*60):
 	time.sleep(1)
-	line = str(segundo) + "," + str(curva_1(segundo/60,3)) + "&" +str(curva_2(segundo/60,8)) + "&" + str(curva_3(segundo/60,13)) + "\n"
-	print(line)
+	line = str(segundo) + "," + str(curva_1(segundo/60,3)/60) + "&" +str(curva_2(segundo/60,8)/60) + "&" + str(curva_3(segundo/60,13)/60) + "\n"
+	#print(line)
 
 	arquivo = open(write_to_file_path, 'r') # Abra o arquivo (leitura)
 	conteudo = arquivo.readlines()
@@ -38,7 +38,7 @@ for segundo in range(14*60):
 	arquivo.close()
 
 
-	
+
 #plt.plot(absissa, f(absissa), 'b')
 
 

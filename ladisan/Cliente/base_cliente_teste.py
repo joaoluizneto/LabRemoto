@@ -1,8 +1,15 @@
 from socket import *
 import json
+import time
 
+#ip_raspberry = "200.156.93.194"
+#ip_raspberry = "192.168.0.148"
+#ip_raspberry = "192.168.0.175"
 ip_raspberry = "127.0.0.1"
+
 porta = 50007
+#porta = 12000
+
 caminho_arquivo_login="login.txt"
 caminho_arquivo_log = "log.txt"
 caminho_arquivo_file2 = "file2.txt"
@@ -38,8 +45,8 @@ def envia_login():
 
 	json_da_lista = json.dumps(login)
 	#print("Json: ", json_da_lista)
-	
-	sockobj.send(json_da_lista.encode())	
+
+	sockobj.send(json_da_lista.encode())
 
 
 apaga_tudo(caminho_arquivo_file2)
@@ -66,17 +73,18 @@ try:
 
 	while True:
 		#Depois de mandar uma mensagem esperamos uma resposta do servidor
+		time.sleep(0.5)
 		data = sockobj.recv(1000000)
 		json_da_lista = data.decode("utf-8")
 		lista_de_linhas = json.loads(json_da_lista)
 		linhas = '\n'.join(lista_de_linhas)
 
-		arquivo = open(caminho_arquivo_file2, 'w')
-		arquivo.writelines(linhas)
-		arquivo.close()
+		with open(caminho_arquivo_file2, 'w') as arquivo:
+			arquivo.writelines(linhas)
+
 except:
 	escreve_log("Um erro de conexão ocorreu! / -Servidor desligado ou -Endereço IP e porta incorretos")
 	#print("Um erro de conexão ocorreu! \n -Servidor desligado \n ou -Endereço IP e porta incorretos ")
 
-	
-	
+
+	escreve_log("Fechando cliente...")
