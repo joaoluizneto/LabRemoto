@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Name=LaDISan
+Comment=This is my comment
+Exec=/home/joaoneto/Documentos/Códigos/LaDISan/ladisan/Cliente/GUI_LaDISan.py
+Icon=/home/joaoneto/Documentos/Códigos/LaDISan/ladisan/Cliente/pet.png
+Path=/home/joaoneto/Documentos/Códigos/LaDISan/ladisan/Cliente
+Terminal=tue
+Type=Application
+Categories=Utility;Application;
+
+

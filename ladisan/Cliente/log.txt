@@ -1,1 +1,2 @@
-Um erro de conexão ocorreu! / -Servidor desligado ou -Endereço IP e porta incorretos
+Faça o login
+Saindo da aplicação...

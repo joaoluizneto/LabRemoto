@@ -54,5 +54,5 @@ with Listener(on_press=pressiona) as l:
 		l.join()
 
 	finally:
-    	print("cleaning up")
-    	GPIO.cleanup()
+		print("cleaning up")
+		GPIO.cleanup()
