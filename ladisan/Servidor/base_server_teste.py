@@ -1,10 +1,24 @@
+#!/usr/bin/python3
 #Server TCP/IP
-
 from socket import *
-import time
-import json
+import time, json, threading, subprocess
 
-caminho_arquivo_login = "login.txt"
+##############SERVER#############
+ip_raspberry = "127.0.0.1"
+porta_telemetria = 50007
+porta_servo = 50008
+caminho_arquivo_login="login.txt"
+caminho_arquivo_file1 = "file1.txt"
+tempo_de_coleta = 0.1
+print(
+"""
+ ____  _____ _____           _____    _
+|  _ \\| ____|_   _|         |_   _|__| | ___
+| |_) |  _|   | |    _____    | |/ _ \\ |/ _ \\
+|  __/| |___  | |   |_____|   | |  __/ |  __/
+|_|   |_____| |_|             |_|\\___|_|\\___|
+"""
+)
 
 def cria_servidor(ip, porta, num_clientes):
 
@@ -22,28 +36,27 @@ def cria_servidor(ip, porta, num_clientes):
 	Combinação = Server TCP/IP
 	"""
 	ip = str(ip)
-	global sockobj
 	sockobj = socket(AF_INET, SOCK_STREAM)
+	sockobj.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 	sockobj.bind((ip, porta))
 	#O socket começa a esperar por clientes limitando a 5 conexões por vez
 	sockobj.listen(num_clientes)
 	print("Servidor iniciado em ",ip, " na porta ",porta, ", esperando por no máximo ", num_clientes, " clientes")
+	return sockobj
 
-def recebe_cliente():
-
+def recebe_cliente(sockobj):
 	"""
 	Aceita uma conexão quando encontrada e devolve a um novo socket conexão e o endereço do cliente conectado
 	"""
-	global conexão, endereço
 	conexão, endereço = sockobj.accept()
 	print('Server conectado por ', endereço)
+	return conexão
 
-
-def apaga_tudo(arquivo):
-	with open(arquivo, 'w') as arquivo:
-		arquivo.close()
-
+#############TELEMETRIA############
 def confere_login(lista):
+	"""
+	Confere se o login fornecido pelo usuário é válido
+	"""
 	login_name= lista[0]
 	login_passw= lista[1]
 	global caminho_arquivo_login
@@ -56,75 +69,110 @@ def confere_login(lista):
 	else:
 		return False
 
+def apaga_tudo(arquivo):
+	with open(arquivo, 'w') as arquivo:
+		arquivo.close()
+
 def pega_dados(arquivo):
-	arquivo = str(arquivo)
-	data = open(arquivo, 'r')
-	texto = data.read()
+	"""
+	Extrai os dados coletados do arquivo "file1.txt"
+	"""
+	with open(arquivo, 'r') as data:
+		texto = data.read()
 	lista_de_linhas = texto.split('\n')
 	tamanho = len(lista_de_linhas)
-	for linha in lista_de_linhas:
-		if tamanho >= 2:
-			if linha != '':
-				ultima_linha = str(linha) 
-		else:
-			ultima_linha = "NONE"
+	ultima_linha = str(lista_de_linhas[len(lista_de_linhas)-2])
+	return (tamanho, lista_de_linhas, ultima_linha)
 
-	data.close()
-	return tamanho, lista_de_linhas, ultima_linha
+def telemetria():
 
-def delta_tempo():
-	global tempo_inicial
-	return time.time() - tempo_inicial
-
-
-apaga_tudo('file1.txt')
-
-tempo_inicial = time.time()
-cria_servidor('localhost', 50007, 5)
-tamanho1, lista_de_linhas1, ultima_linha1 = pega_dados('file1.txt')
-
-while True:
-	# Aceita uma conexão quando encontrada e devolve a um novo socket conexão e o endereço do cliente conectado
-
-	recebe_cliente() #fica esperando o cliente aparecer
-
-	confere=False
-	while confere == False:
-		data = conexão.recv(1024)
-		json_da_lista = data.decode("utf-8")
-		lista = json.loads(json_da_lista)
-		confere = confere_login(lista)
-
-		if confere==True:
-			print("Login efetuado!")
-			json_confere = json.dumps(confere).encode()
-			conexão.send(json_confere)
-		else:
-			print("Login incorreto!")
-			json_confere = json.dumps(confere).encode()
-			conexão.send(json_confere)
-
+	sockobj = cria_servidor(ip_raspberry, porta_telemetria, 5)
 
 	while True:
 
+		apaga_tudo(caminho_arquivo_file1)
 
-		if delta_tempo() > 1.0 :
+		tamanho1, lista_de_linhas1, ultima_linha1 = pega_dados(caminho_arquivo_file1)
+
+			# Aceita uma conexão quando encontrada e devolve a um novo socket conexão e o endereço do cliente conectado
+		conexão = recebe_cliente(sockobj) #fica esperando o cliente aparecer
+
+		confere=False
+		while confere == False:
+			data = conexão.recv(1024)
+			json_da_lista = data.decode("utf-8")
+			lista = json.loads(json_da_lista)
+			confere = confere_login(lista)
+
+			if confere==True:
+				print("Login efetuado!")
+				json_confere = json.dumps(confere).encode()
+				conexão.send(json_confere)
+			else:
+				print("Login incorreto!")
+				json_confere = json.dumps(confere).encode()
+				conexão.send(json_confere)
+
+		coleta = subprocess.Popen(["python3", "simula_coleta.py"])
+
+		while True:
+			time.sleep(tempo_de_coleta)
 			tamanho2, lista_de_linhas2, ultima_linha2 = pega_dados('file1.txt')
 
 			if tamanho2 != tamanho1:
-				#print("tamanho alterado!")
-				#print("novo tamanho = ", tamanho2)
-				print("linha inserida: ", ultima_linha2)
+				#print("linha inserida: ", ultima_linha2)
 				json_da_lista = json.dumps(lista_de_linhas2)
-				conexão.send(json_da_lista.encode())
+				try:
+					conexão.send(json_da_lista.encode())
+				except (BrokenPipeError, ConnectionResetError) as e:
+					print("Cliente desligado!!")
+					break
 				tamanho1 = tamanho2
 				lista_de_linhas1 = lista_de_linhas2
 				ultima_linha1 = ultima_linha2
 
-				tempo_inicial = time.time()
+		print("Fechando servidor...\n")
+		coleta.terminate()
+		conexão.close()
 
 
-	#Fecha a conexão criada depois de responder o cliente
-	conexão.close()
+##########SERVOPUBLISHER###########
+def controla_servo():
+	sockobj_servo = cria_servidor(ip_raspberry, porta_servo, 1)
+
+	while True:
+		conexão_servo = recebe_cliente(sockobj_servo) #fica esperando o cliente aparecer
+		comando = "start"
+		while True:
+			#try:
+			time.sleep(0.5)
+			data = conexão_servo.recv(100000)
+			if len(data)==0:
+				break
+
+			novo_comando = data.decode("utf-8")
+			if comando != novo_comando:
+				print("comando: ",novo_comando)
+				comando = novo_comando
+			#except:
+			#	print("Um erro de conexão ocorreu! \n -Servidor desligado \n ou -Endereço IP e porta incorretos ")
+		conexão_servo.shutdown(0)
+		conexão_servo.close()
 
 
+#########COMEÇA O PROGRAMA#########
+Thread1 = threading.Thread(target=telemetria)
+Thread2 = threading.Thread(target=controla_servo)
+
+Thread1.daemon = True
+Thread2.daemon = True
+
+try:
+	Thread1.start()
+	Thread2.start()
+	Thread1.join()
+	Thread2.join()
+
+except KeyboardInterrupt:
+	print("\nCtrl-C/ Pesquisa cancelada!")
+	exit()
